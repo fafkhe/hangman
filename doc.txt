@@ -1,0 +1,64 @@
+
+type Char {
+  char: string
+  containts: boolean
+}
+
+//
+  banana
+  [
+    {
+      char: 'c',
+      contains: false
+    },
+    {
+      char: 'a',
+      contains: true
+    }
+  ]
+//
+
+Models:
+
+  User: 
+    id int
+    name string
+    email: string
+    password: string
+
+  Game:
+    id: int
+    userId: int
+    word: string
+    chances: int (default 5)
+    guessletters: []Char
+    createdAt: date
+    finishedAt: date
+    gameOver: boolean (default: false)
+    hasWon: boolean (default: false)
+
+
+list of APIs:
+  
+  auth
+    /auth/signup [POST]
+    /auth/login [POST]
+    /auth/me [GET]
+    /auth/update [POST]
+  game
+    /game/start [POST]
+    /game/status/:gameid [GET]
+    /game/guess/:gameid [POST]
+    /game/statistics/:userid
+
+
+start of game
+  get free word api: https://random-word-api.herokuapp.com/word
+
+
+  statistics: 
+    {
+      total games: int
+      pending games: int
+      won games: int
+    }
