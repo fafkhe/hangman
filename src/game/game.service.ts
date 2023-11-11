@@ -4,8 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Game } from 'src/entities/game.entity';
 import { User } from 'src/entities/User.entity';
 import { HttpService } from '@nestjs/axios/dist';
-import { AxiosResponse } from 'axios';
-import { Observable } from 'rxjs';
 import axios from 'axios';
 import {
   BadRequestException,
@@ -44,9 +42,28 @@ export class GameService {
       userId: userId,
       secretWord: secretWord,
     });
-
     await this.gameRepo.save(newGame);
 
-    return newGame;
+    const x = await this.gameRepo.find({
+      where: { id: newGame.id },
+      relations: ['user'],
+    });
+
+    return x;
   }
+
+  async findById(id: number) {
+    const thisGame = await this.gameRepo.find({
+      where: {
+        id: id,
+      },
+      relations: ['user'],
+    });
+    console.log(thisGame, 'thisgame is here');
+    if (!thisGame) {
+      throw new BadRequestException('this game is not exist');
+    }
+    return thisGame;
+  }
+
 }
