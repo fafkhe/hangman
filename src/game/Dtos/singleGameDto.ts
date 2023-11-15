@@ -3,6 +3,7 @@ import { Transform, Type } from 'class-transformer';
 import { User } from 'src/entities/User.entity';
 import { ValidateNested } from 'class-validator';
 import { UserDto } from 'src/auth/dtos/userDto';
+import { dashify } from '../utils/dashifystring';
 
 export enum Status {
   Ongoing = 'Ongoing',
@@ -16,15 +17,8 @@ export class singleGameDto {
 
   @Expose()
   @Transform((obj) => {
-    const guesslettersArr = obj.obj.guessletters.split('');
-
-    return obj.obj.secretWord
-      .split('')
-      .map((x) => {
-        const exist = guesslettersArr.includes(x);
-        return exist ? x : '-';
-      })
-      .join('');
+    console.log(obj.obj)
+   return dashify(obj.obj.guessletters, obj.obj.secretWord);
   })
   secretWord: string;
 
@@ -60,5 +54,4 @@ export class singleGameDto {
   @Type(() => UserDto)
   @ValidateNested()
   readonly user: User;
-  
 }

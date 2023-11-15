@@ -1,11 +1,20 @@
-import { Controller, Post, Get, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { GameService } from './game.service';
 import { Me } from 'src/decorators/me.decorators';
 import { User } from 'src/entities/User.entity';
 import { AuthGuard } from 'src/gaurds/auth.gaurd';
-import { serialize } from 'v8';
 import { Serialize } from 'src/interceptors/serialize.interceptors';
 import { singleGameDto } from './Dtos/singleGameDto';
+import { GameQueryDto } from './Dtos/GameQueryDto';
+import { GuessLetterDto } from './Dtos/guessLetterDto';
 
 @Controller('game')
 export class GameController {
@@ -18,8 +27,21 @@ export class GameController {
   }
 
   @Serialize(singleGameDto)
+  @Post('/guessletter')   
+  guess(@Body() body: GuessLetterDto) {
+    console.log("....")
+    return this.gameService.guessLetter(body);
+  }
+
+  @Serialize(singleGameDto)
   @Get('/single/:id')
   getSinglegame(@Param('id') id: number) {
     return this.gameService.findById(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/mygames')
+  getMyGames(@Me() me: User, @Query() query: GameQueryDto) {
+    return this.gameService.myGames(me, query);
   }
 }
