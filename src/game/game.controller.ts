@@ -44,4 +44,11 @@ export class GameController {
   getMyGames(@Me() me: User, @Query() query: GameQueryDto) {
     return this.gameService.myGames(me, query);
   }
+
+  @UseGuards(AuthGuard)
+  @Get('statistics/:id')
+  statistics(@Me() me:User) {
+    return this.gameService.statistics(me)
+  }
 }
+

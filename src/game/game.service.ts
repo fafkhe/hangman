@@ -139,4 +139,48 @@ export class GameService {
 
     return thisGame;
   }
+
+  async statistics(me: User) {
+    const theseGames = await this.gameRepo.find({
+      where: {
+        userId: me.id,
+      },
+    });
+
+    const totalGames = theseGames.length;
+
+    const OngoingGames = await this.gameRepo.find({
+      where: {
+        userId: me.id,
+        status: Status.Ongoing,
+      },
+    });
+
+    const pendingGames = OngoingGames.length;
+
+    const WonGames = await this.gameRepo.find({
+      where: {
+        userId: me.id,
+        status: Status.Won,
+      },
+    });
+
+    const Wongames = WonGames.length;
+
+    const lostgames = await this.gameRepo.find({
+      where: {
+        userId: me.id,
+        status: Status.Lost,
+      },
+    });
+
+    const lostGames = lostgames.length;
+
+    return {
+      totalGames,
+      pendingGames,
+      lostGames,
+      Wongames,
+    };
+  }
 }
