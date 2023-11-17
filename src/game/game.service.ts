@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Game, Status } from 'src/entities/game.entity';
@@ -56,7 +56,7 @@ export class GameService {
   }
 
   async findById(id: number) {
-    const thisGame = await this.gameRepo.find({
+    const thisGame = await this.gameRepo.findOne({
       where: {
         id: id,
       },
@@ -86,7 +86,7 @@ export class GameService {
     };
   }
 
-  async guessLetter(body: GuessLetterDto) {
+  async guessLetter(body: GuessLetterDto, me: User) {
     let alphaExp = /^[a-zA-Z]+$/;
     const { guessletter, gameId } = body;
 
@@ -94,26 +94,27 @@ export class GameService {
       where: { id: gameId },
       relations: ['user'],
     });
+    if (!thisGame) {
+      throw new BadRequestException('no such game found!!');
+    }
+    if (thisGame.userId !== me.id) throw new ForbiddenException('forbiden!!');
 
-    if (thisGame.chances === 0 || thisGame.status !== Status.Ongoing) {
+    if (thisGame.chances < 1 || thisGame.status !== Status.Ongoing) {
       throw new BadRequestException(
         'the game is over, please start a new game',
       );
     }
 
-    if (!thisGame) {
-      throw new BadRequestException('no such game found!!');
-    }
-
-    if (guessletter.length !== 1) {
-      throw new BadRequestException('please provide a single letter');
-    }
     if (!guessletter.match(alphaExp)) {
       throw new BadRequestException('Please enter only alphabets');
     }
 
     if (thisGame.guessletters.includes(guessletter)) {
-      throw new BadRequestException('you already choose this letter ');
+      throw new BadRequestException('you already chose this letter ');
+    }
+
+    if (guessletter.length !== 1) {
+      throw new BadRequestException('please provide a single letter');
     }
 
     if (!thisGame.secretWord.includes(guessletter)) {
@@ -121,15 +122,15 @@ export class GameService {
     }
     thisGame.guessletters += guessletter;
 
-    const isSameChar = dashify(thisGame.guessletters, thisGame.secretWord);
+    const dashifiedString = dashify(thisGame.guessletters, thisGame.secretWord);
 
-    if (isSameChar.includes('-') && thisGame.chances === 0) {
+    if (dashifiedString.includes('-') && thisGame.chances === 0) {
       thisGame.status = Status.Lost;
       this.gameRepo.save(thisGame);
       return `"You lost the correct word was ${thisGame.secretWord} !!"`;
     }
 
-    if (!isSameChar.includes('-')) {
+    if (!dashifiedString.includes('-')) {
       thisGame.status = Status.Won;
       this.gameRepo.save(thisGame);
       return 'You Won !!';
@@ -141,46 +142,27 @@ export class GameService {
   }
 
   async statistics(me: User) {
+    const result = {
+      total: 0,
+      Ongoing: 0,
+      Won: 0,
+      Lost: 0
+    };
+
     const theseGames = await this.gameRepo.find({
       where: {
         userId: me.id,
       },
     });
 
-    const totalGames = theseGames.length;
-
-    const OngoingGames = await this.gameRepo.find({
-      where: {
-        userId: me.id,
-        status: Status.Ongoing,
-      },
+    theseGames.forEach((item) => {
+      result.total++;
+      if (!result[item.status]) result[item.status] = 0;
+      result[item.status]++;
     });
 
-    const pendingGames = OngoingGames.length;
+    return result;
 
-    const WonGames = await this.gameRepo.find({
-      where: {
-        userId: me.id,
-        status: Status.Won,
-      },
-    });
-
-    const Wongames = WonGames.length;
-
-    const lostgames = await this.gameRepo.find({
-      where: {
-        userId: me.id,
-        status: Status.Lost,
-      },
-    });
-
-    const lostGames = lostgames.length;
-
-    return {
-      totalGames,
-      pendingGames,
-      lostGames,
-      Wongames,
-    };
+  
   }
 }

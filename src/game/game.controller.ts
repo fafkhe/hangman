@@ -20,6 +20,7 @@ import { GuessLetterDto } from './Dtos/guessLetterDto';
 export class GameController {
   constructor(private gameService: GameService) {}
 
+  @Serialize(singleGameDto)
   @UseGuards(AuthGuard)
   @Post('/start')
   startGame(@Me() me: User) {
@@ -27,15 +28,16 @@ export class GameController {
   }
 
   @Serialize(singleGameDto)
-  @Post('/guessletter')   
-  guess(@Body() body: GuessLetterDto) {
-    console.log("....")
-    return this.gameService.guessLetter(body);
+  @UseGuards(AuthGuard)
+  @Post('/guessletter')
+  guess(@Body() body: GuessLetterDto, @Me() me:User) {
+    return this.gameService.guessLetter(body,me);
   }
 
   @Serialize(singleGameDto)
   @Get('/single/:id')
   getSinglegame(@Param('id') id: number) {
+    
     return this.gameService.findById(id);
   }
 
@@ -46,9 +48,8 @@ export class GameController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('statistics/:id')
-  statistics(@Me() me:User) {
-    return this.gameService.statistics(me)
+  @Get('statistics/:userid')
+  game_statistics(@Me() me: User) {
+    return this.gameService.statistics(me);
   }
 }
-

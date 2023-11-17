@@ -5,7 +5,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/entities/User.entity';
 import { craeteUserDto } from './dtos/createUser.dto';
-import { BadRequestException,InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
@@ -26,8 +29,6 @@ export class AuthService {
       let target = `user-${String(id)}`;
 
       let thisUser = (await this.cacheManager.get(target)) as User;
-      console.log(thisUser,"thisuser")
-      // let thisUser = null;
 
       if (!thisUser) {
         thisUser = await this.userRepo.findOne({
@@ -52,20 +53,16 @@ export class AuthService {
   }
 
   async createUser(data: craeteUserDto) {
-    // const saltOrRounds = 10;
-    // const passwordHash = await bcrypt.hash(data.password, saltOrRounds);
     let thisUser = await this.userRepo.findOne({
       where: {
         email: data.email,
       },
     });
 
-    if (thisUser) {
-      throw new BadRequestException('this user already exist!!');
-    } else {
-      const user = this.userRepo.create({ ...data });
-      await this.userRepo.save(user);
-    }
+    if (thisUser) throw new Error('this user already exist!!');
+    const user = this.userRepo.create({ ...data });
+    await this.userRepo.save(user);
+
     return 'ok';
   }
 
@@ -75,12 +72,11 @@ export class AuthService {
         email: data.email,
       },
     });
-    if (!existingUser) {
+    if (!existingUser)
       throw new BadRequestException('this user does not exist!!!');
-    }
-    console.log(existingUser, '////');
+
     const isMatch = await bcrypt.compare(data.password, existingUser.password);
-    if (isMatch === false) {
+    if (!isMatch) {
       throw new BadRequestException('password does not match!');
     }
     const token = this.#generateToken({

@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from 'dotenv';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { User } from './entities/User.entity';
 import { JwtModule } from '@nestjs/jwt';
@@ -33,7 +31,6 @@ config();
     }),
     CacheModule.register({
       isGlobal: true,
-      inject: [ConfigService],
       store: (): any =>
         redisStore({
           commandsQueueMaxLength: 10_000,

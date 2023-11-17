@@ -3,17 +3,16 @@ import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly userService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
     const requester = request.requester;
 
-    console.log(requester);
     if (!requester || !requester.id) return false;
 
-    const thisUser = await this.userService.findById(requester._id);
+    const thisUser = await this.authService.findById(requester.id);
 
     if (!thisUser) return false;
     request.me = thisUser;
