@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { loginUserDto } from './dtos/loginUser.dto';
 
 @Injectable()
 export class AuthService {
@@ -66,7 +67,7 @@ export class AuthService {
     return 'ok';
   }
 
-  async login(data: craeteUserDto) {
+  async login(data:loginUserDto ) {
     let existingUser = await this.userRepo.findOne({
       where: {
         email: data.email,
